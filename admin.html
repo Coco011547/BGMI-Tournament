@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        body { background-color: #121212; color: #fff; font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; }
+        input, button { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border-radius: 4px; border: none; }
+        button { background-color: #f39c12; font-weight: bold; cursor: pointer; color: black; }
+        .log-box { border: 1px solid #333; padding: 15px; margin-top: 20px; border-radius: 4px; }
+        .del-btn { background-color: #e74c3c; color: white; width: auto; padding: 6px 12px; margin-left: 10px; font-size: 0.8rem; }
+        h3 { color: #f39c12; border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 30px; }
+        a { display: block; text-align: center; color: #aaa; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center;">Admin Panel</h1>
+    <a href="index.html">Return to Home</a>
+    
+    <input type="password" id="pass" placeholder="ENTER ADMIN PASSWORD FIRST (e.g. bgmi)">
+
+    <h3>Update Match Room Info</h3>
+    <input type="text" id="m_time" placeholder="Start Time (e.g., 9:00 PM IST)">
+    <input type="text" id="m_map" placeholder="Map (e.g., Erangel)">
+    <input type="text" id="m_room" placeholder="Room ID">
+    <input type="text" id="m_pass" placeholder="Room Password">
+    <button onclick="updateInfo()" id="infoBtn">Push Live Info to Website</button>
+
+    <h3>Add Match Score</h3>
+    <input type="number" id="match" placeholder="Match Number (e.g., 1)">
+    <input type="text" id="team" placeholder="Team Name (e.g., Team Alpha)">
+    <input type="number" id="rank" placeholder="Placement (e.g., 2)">
+    <input type="number" id="kills" placeholder="Total Kills">
+    <button onclick="addScore()" id="addBtn">Submit Score</button>
+
+    <h3>Delete Bad Entries</h3>
+    <button onclick="loadEntries()">Load Recent Match Entries</button>
+    <div id="entriesList" class="log-box">Entries will appear here...</div>
+
+    <script>
+        // PASTE YOUR NEW GOOGLE SCRIPT WEB APP URL HERE:
+        const API_URL = "YOUR_WEB_APP_URL_HERE";
+
+        async function updateInfo() {
+            const pass = document.getElementById('pass').value;
+            const time = document.getElementById('m_time').value;
+            const map = document.getElementById('m_map').value;
+            const room = document.getElementById('m_room').value;
+            const roompass = document.getElementById('m_pass').value;
+
+            if(!pass) return alert("Enter admin password at the top!");
+            document.getElementById('infoBtn').innerText = "Updating...";
+
+            const url = `${API_URL}?action=update_info&password=${encodeURIComponent(pass)}&time=${encodeURIComponent(time)}&map=${encodeURIComponent(map)}&room=${encodeURIComponent(room)}&roompass=${encodeURIComponent(roompass)}`;
+            await fetch(url);
+            
+            alert("Live match info updated on homepage!");
+            document.getElementById('infoBtn').innerText = "Push Live Info to Website";
+        }
+
+        async function addScore() {
+            const pass = document.getElementById('pass').value;
+            const match = document.getElementById('match').value;
+            const team = document.getElementById('team').value;
+            const rank = document.getElementById('rank').value;
+            const kills = document.getElementById('kills').value;
+
+            if(!pass || !team || !rank || !kills) return alert("Fill all fields and password!");
+            document.getElementById('addBtn').innerText = "Sending...";
+
+            const url = `${API_URL}?action=add_score&password=${encodeURIComponent(pass)}&match=${encodeURIComponent(match)}&team=${encodeURIComponent(team)}&rank=${encodeURIComponent(rank)}&kills=${encodeURIComponent(kills)}`;
+            await fetch(url);
+            
+            alert("Score added!");
+            document.getElementById('addBtn').innerText = "Submit Score";
+        }
+
+        async function loadEntries() {
+            document.getElementById('entriesList').innerHTML = "Loading...";
+            const res = await fetch(API_URL + "?action=read_scores");
+            const data = await res.json();
+            
+            let html = "";
+            for (let i = data.length - 1; i > 0; i--) {
+                const [id, match, team, rank, kills] = data[i];
+                html += `<div style="margin-bottom:12px; border-bottom:1px solid #333; padding-bottom:12px;">
+                    <strong>Match ${match}</strong>: ${team} (Rank: ${rank}, Kills: ${kills}) 
+                    <button class="del-btn" onclick="deleteScore('${id}')">Delete</button></div>`;
+            }
+            document.getElementById('entriesList').innerHTML = html || "No entries found.";
+        }
+
+        async function deleteScore(id) {
+            const pass = document.getElementById('pass').value;
+            if(!pass) return alert("Enter Admin Password at the top!");
+            
+            if(confirm("Permanently delete this entry?")) {
+                const url = `${API_URL}?action=delete_score&password=${encodeURIComponent(pass)}&id=${encodeURIComponent(id)}`;
+                await fetch(url);
+                alert("Deleted!");
+                loadEntries(); 
+            }
+        }
+    </script>
+</body>
+</html>
