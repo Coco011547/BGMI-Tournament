@@ -11,12 +11,12 @@
         .log-box { border: 1px solid #333; padding: 15px; margin-top: 20px; border-radius: 4px; }
         .del-btn { background-color: #e74c3c; color: white; width: auto; padding: 6px 12px; margin-left: 10px; font-size: 0.8rem; }
         h3 { color: #f39c12; border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 30px; }
-        a { display: block; text-align: center; color: #aaa; margin-bottom: 20px; }
+        a { display: block; text-align: center; color: #aaa; margin-bottom: 20px; text-decoration: none; }
     </style>
 </head>
 <body>
     <h1 style="text-align:center;">Admin Panel</h1>
-    <a href="index.html">Return to Home</a>
+    <a href="index.html">⬅ Return to Home</a>
     
     <input type="password" id="pass" placeholder="ENTER ADMIN PASSWORD FIRST (e.g. bgmi)">
 
@@ -36,11 +36,9 @@
 
     <h3>Delete Bad Entries</h3>
     <button onclick="loadEntries()">Load Recent Match Entries</button>
-    <div id="entriesList" class="log-box">Entries will appear here...</div>
+    <div id="entriesList" class="log-box">Click "Load Recent Match Entries" to view database...</div>
 
-    
     <script>
-        // PASTE YOUR NEW GOOGLE SCRIPT WEB APP URL HERE:
         const API_URL = "https://script.google.com/macros/s/AKfycbwQowxA5loM-COyL7ud65vqKDJ7-JUAnCdRAzSbZeMN1Rb7QRwObddGjf5uecq3Tkzz6A/exec";
 
         async function updateInfo() {
@@ -54,9 +52,12 @@
             document.getElementById('infoBtn').innerText = "Updating...";
 
             const url = `${API_URL}?action=update_info&password=${encodeURIComponent(pass)}&time=${encodeURIComponent(time)}&map=${encodeURIComponent(map)}&room=${encodeURIComponent(room)}&roompass=${encodeURIComponent(roompass)}`;
-            await fetch(url);
             
-            alert("Live match info updated on homepage!");
+            try {
+                await fetch(url, { mode: 'no-cors' });
+            } catch (e) {}
+            
+            alert("Match Info request sent! Refresh homepage to verify.");
             document.getElementById('infoBtn').innerText = "Push Live Info to Website";
         }
 
@@ -71,25 +72,34 @@
             document.getElementById('addBtn').innerText = "Sending...";
 
             const url = `${API_URL}?action=add_score&password=${encodeURIComponent(pass)}&match=${encodeURIComponent(match)}&team=${encodeURIComponent(team)}&rank=${encodeURIComponent(rank)}&kills=${encodeURIComponent(kills)}`;
-            await fetch(url);
             
-            alert("Score added!");
+            try {
+                await fetch(url, { mode: 'no-cors' });
+            } catch (e) {}
+
+            alert("Score entry sent! Refresh leaderboard to verify.");
             document.getElementById('addBtn').innerText = "Submit Score";
+            document.getElementById('team').value = '';
+            document.getElementById('rank').value = '';
+            document.getElementById('kills').value = '';
         }
 
         async function loadEntries() {
             document.getElementById('entriesList').innerHTML = "Loading...";
-            const res = await fetch(API_URL + "?action=read_scores");
-            const data = await res.json();
-            
-            let html = "";
-            for (let i = data.length - 1; i > 0; i--) {
-                const [id, match, team, rank, kills] = data[i];
-                html += `<div style="margin-bottom:12px; border-bottom:1px solid #333; padding-bottom:12px;">
-                    <strong>Match ${match}</strong>: ${team} (Rank: ${rank}, Kills: ${kills}) 
-                    <button class="del-btn" onclick="deleteScore('${id}')">Delete</button></div>`;
+            try {
+                const res = await fetch(API_URL + "?action=read_scores");
+                const data = await res.json();
+                let html = "";
+                for (let i = data.length - 1; i > 0; i--) {
+                    const [id, match, team, rank, kills] = data[i];
+                    html += `<div style="margin-bottom:12px; border-bottom:1px solid #333; padding-bottom:12px;">
+                        <strong>Match ${match}</strong>: ${team} (Rank: ${rank}, Kills: ${kills}) 
+                        <button class="del-btn" onclick="deleteScore('${id}')">Delete</button></div>`;
+                }
+                document.getElementById('entriesList').innerHTML = html || "No entries found.";
+            } catch (e) {
+                document.getElementById('entriesList').innerHTML = "Error loading database. Ensure you have submitted at least one score.";
             }
-            document.getElementById('entriesList').innerHTML = html || "No entries found.";
         }
 
         async function deleteScore(id) {
@@ -98,9 +108,11 @@
             
             if(confirm("Permanently delete this entry?")) {
                 const url = `${API_URL}?action=delete_score&password=${encodeURIComponent(pass)}&id=${encodeURIComponent(id)}`;
-                await fetch(url);
-                alert("Deleted!");
-                loadEntries(); 
+                try {
+                    await fetch(url, { mode: 'no-cors' });
+                } catch (e) {}
+                alert("Delete request sent! Please reload entries.");
+                setTimeout(loadEntries, 1500);
             }
         }
     </script>
