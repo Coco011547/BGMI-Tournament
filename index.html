@@ -6,7 +6,7 @@
     <title>BGMI Tournament Hub</title>
     <style>
         body { background-color: #121212; color: #fff; font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-        .nav { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        .nav { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
         .nav a { color: #f39c12; text-decoration: none; font-weight: bold; padding: 8px 16px; border: 1px solid #f39c12; border-radius: 4px; }
         .info-card { background: #1e1e1e; border: 2px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
         .info-card h2 { margin: 0 0 10px 0; color: #f1c40f; }
@@ -14,6 +14,7 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px 8px; border-bottom: 1px solid #333; text-align: center; }
         th { background-color: #f39c12; color: #000; }
+        @media (max-width: 500px) { .info-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -40,7 +41,6 @@
     </div>
 
     <script>
-        // PASTE YOUR NEW GOOGLE SCRIPT WEB APP URL HERE:
         const API_URL = "https://script.google.com/macros/s/AKfycbwQowxA5loM-COyL7ud65vqKDJ7-JUAnCdRAzSbZeMN1Rb7QRwObddGjf5uecq3Tkzz6A/exec";
 
         function getPoints(rank) {
@@ -64,7 +64,9 @@
                 } else {
                     document.getElementById('match-info').innerHTML = "<div>No match scheduled yet.</div>";
                 }
-            } catch(e) { console.log("Info error", e); }
+            } catch(e) { 
+                document.getElementById('match-info').innerHTML = "<div>Error loading match info.</div>"; 
+            }
 
             // Load Leaderboard
             try {
@@ -88,7 +90,7 @@
                 });
                 document.getElementById('board').innerHTML = html || "<tr><td colspan='6'>No matches played yet.</td></tr>";
             } catch(e) {
-                document.getElementById('board').innerHTML = "<tr><td colspan='6'>Error loading database.</td></tr>";
+                document.getElementById('board').innerHTML = "<tr><td colspan='6'>Error loading database. Make sure you have submitted at least one score!</td></tr>";
             }
         }
         load();
