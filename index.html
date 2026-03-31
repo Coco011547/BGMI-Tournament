@@ -3,97 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BGMI Custom Tournament</title>
+    <title>BGMI Tournament Hub</title>
     <style>
-        body { background-color: #121212; color: #ffffff; font-family: sans-serif; margin: 0; padding: 20px; }
-        h1 { text-align: center; color: #f39c12; font-size: 1.5rem; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
-        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #333; }
-        th { background-color: #1e1e1e; color: #f39c12; }
-        tr:nth-child(1) td { font-weight: bold; color: #f1c40f; } 
-        .container { max-width: 800px; margin: auto; overflow-x: auto; }
+        body { background-color: #121212; color: #fff; font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+        .nav { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        .nav a { color: #f39c12; text-decoration: none; font-weight: bold; padding: 8px 16px; border: 1px solid #f39c12; border-radius: 4px; }
+        .info-card { background: #1e1e1e; border: 2px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+        .info-card h2 { margin: 0 0 10px 0; color: #f1c40f; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 1.1rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 8px; border-bottom: 1px solid #333; text-align: center; }
+        th { background-color: #f39c12; color: #000; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>BGMI Tournament Standings</h1>
+    <div class="nav">
+        <a href="register.html">Register Team</a>
+        <a href="admin.html">Admin Panel</a>
+    </div>
+
+    <div class="info-card">
+        <h2>Next Match Info</h2>
+        <div class="info-grid" id="match-info">
+            <div>Loading room data...</div>
+        </div>
+    </div>
+    
+    <h2 style="text-align: center; color: #f39c12;">Current Standings</h2>
+    <div style="overflow-x: auto;">
         <table>
             <thead>
-                <tr>
-                    <th>Rank</th>
-                    <th>Team</th>
-                    <th>Matches</th>
-                    <th>WWCD</th>
-                    <th>Kills</th>
-                    <th>Points</th>
-                </tr>
+                <tr><th>Rank</th><th>Team</th><th>Matches</th><th>WWCD</th><th>Kills</th><th>Points</th></tr>
             </thead>
-            <tbody id="leaderboard">
-                <tr><td colspan="6">Loading live scores...</td></tr>
-            </tbody>
+            <tbody id="board"><tr><td colspan="6">Loading live data...</td></tr></tbody>
         </table>
     </div>
 
     <script>
-        // PASTE YOUR PUBLISHED GOOGLE SHEET CSV LINK INSIDE THESE QUOTES
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRXL2rPOBaKheBrnXUpUPUFnslQlIixzcNoprRzHdp_fAzT-CcLR_3m82ZiIWck9BIAEKRdVxXH1xRC/pub?output=csv';
+        // PASTE YOUR NEW GOOGLE SCRIPT WEB APP URL HERE:
+        const API_URL = "YOUR_WEB_APP_URL_HERE";
 
-        function getPlacementPoints(rank) {
-            const points = {1: 10, 2: 6, 3: 5, 4: 4, 5: 3, 6: 2, 7: 1, 8: 1};
-            return points[rank] || 0;
+        function getPoints(rank) {
+            const p = {1:10, 2:6, 3:5, 4:4, 5:3, 6:2, 7:1, 8:1};
+            return p[rank] || 0;
         }
 
-        async function fetchScores() {
+        async function load() {
+            // Load Match Info
             try {
-                const response = await fetch(csvUrl);
-                const data = await response.text();
-                
-                const rows = data.split('\n').slice(1); 
-                const teams = {};
-
-                rows.forEach(row => {
-                    if (!row.trim()) return;
-                    
-                    const cols = row.split(',');
-                    const teamName = cols[2].trim();
-                    const placement = parseInt(cols[3]);
-                    const kills = parseInt(cols[4]);
-
-                    if (!teams[teamName]) {
-                        teams[teamName] = { matches: 0, wwcd: 0, kills: 0, points: 0 };
-                    }
-
-                    teams[teamName].matches += 1;
-                    teams[teamName].kills += kills;
-                    teams[teamName].points += kills + getPlacementPoints(placement);
-                    if (placement === 1) teams[teamName].wwcd += 1;
-                });
-
-                const sortedTeams = Object.entries(teams)
-                    .map(([name, stats]) => ({ name, ...stats }))
-                    .sort((a, b) => b.points - a.points || b.wwcd - a.wwcd || b.kills - a.kills);
-
-                const tbody = document.getElementById('leaderboard');
-                tbody.innerHTML = '';
-
-                sortedTeams.forEach((team, index) => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>${team.name}</td>
-                            <td>${team.matches}</td>
-                            <td>${team.wwcd}</td>
-                            <td>${team.kills}</td>
-                            <td><strong>${team.points}</strong></td>
-                        </tr>
+                const infoRes = await fetch(API_URL + "?action=read_info");
+                const infoData = await infoRes.json();
+                if(infoData.length > 1) {
+                    const [time, room, pass, map] = infoData[1];
+                    document.getElementById('match-info').innerHTML = `
+                        <div><strong>Time:</strong> ${time}</div>
+                        <div><strong>Map:</strong> ${map}</div>
+                        <div><strong>Room ID:</strong> ${room}</div>
+                        <div><strong>Password:</strong> ${pass}</div>
                     `;
+                } else {
+                    document.getElementById('match-info').innerHTML = "<div>No match scheduled yet.</div>";
+                }
+            } catch(e) { console.log("Info error", e); }
+
+            // Load Leaderboard
+            try {
+                const res = await fetch(API_URL + "?action=read_scores");
+                const data = await res.json();
+                const teams = {};
+                for (let i = 1; i < data.length; i++) {
+                    const [id, match, team, rank, kills] = data[i];
+                    if (!team) continue;
+                    if (!teams[team]) teams[team] = { matches: 0, wwcd: 0, kills: 0, points: 0 };
+                    teams[team].matches += 1;
+                    teams[team].kills += parseInt(kills);
+                    teams[team].points += parseInt(kills) + getPoints(parseInt(rank));
+                    if (parseInt(rank) === 1) teams[team].wwcd += 1;
+                }
+                const sorted = Object.entries(teams).map(([name, s]) => ({name, ...s})).sort((a,b) => b.points - a.points || b.wwcd - a.wwcd || b.kills - a.kills);
+                let html = "";
+                sorted.forEach((t, i) => {
+                    let style = i === 0 ? "font-weight:bold; color:#f1c40f;" : "";
+                    html += `<tr style="${style}"><td>${i+1}</td><td>${t.name}</td><td>${t.matches}</td><td>${t.wwcd}</td><td>${t.kills}</td><td><strong>${t.points}</strong></td></tr>`;
                 });
-            } catch (error) {
-                document.getElementById('leaderboard').innerHTML = '<tr><td colspan="6">Error loading scores. Check your CSV link.</td></tr>';
+                document.getElementById('board').innerHTML = html || "<tr><td colspan='6'>No matches played yet.</td></tr>";
+            } catch(e) {
+                document.getElementById('board').innerHTML = "<tr><td colspan='6'>Error loading database.</td></tr>";
             }
         }
-
-        fetchScores();
+        load();
     </script>
 </body>
 </html>
