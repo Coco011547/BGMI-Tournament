@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BGMI Custom Tournament</title>
+    <style>
+        body { background-color: #121212; color: #ffffff; font-family: sans-serif; margin: 0; padding: 20px; }
+        h1 { text-align: center; color: #f39c12; font-size: 1.5rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
+        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #333; }
+        th { background-color: #1e1e1e; color: #f39c12; }
+        tr:nth-child(1) td { font-weight: bold; color: #f1c40f; } 
+        .container { max-width: 800px; margin: auto; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BGMI Tournament Standings</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Team</th>
+                    <th>Matches</th>
+                    <th>WWCD</th>
+                    <th>Kills</th>
+                    <th>Points</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard">
+                <tr><td colspan="6">Loading live scores...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // PASTE YOUR PUBLISHED GOOGLE SHEET CSV LINK INSIDE THESE QUOTES
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRXL2rPOBaKheBrnXUpUPUFnslQlIixzcNoprRzHdp_fAzT-CcLR_3m82ZiIWck9BIAEKRdVxXH1xRC/pub?output=csv';
+
+        function getPlacementPoints(rank) {
+            const points = {1: 10, 2: 6, 3: 5, 4: 4, 5: 3, 6: 2, 7: 1, 8: 1};
+            return points[rank] || 0;
+        }
+
+        async function fetchScores() {
+            try {
+                const response = await fetch(csvUrl);
+                const data = await response.text();
+                
+                const rows = data.split('\n').slice(1); 
+                const teams = {};
+
+                rows.forEach(row => {
+                    if (!row.trim()) return;
+                    
+                    const cols = row.split(',');
+                    const teamName = cols[2].trim();
+                    const placement = parseInt(cols[3]);
+                    const kills = parseInt(cols[4]);
+
+                    if (!teams[teamName]) {
+                        teams[teamName] = { matches: 0, wwcd: 0, kills: 0, points: 0 };
+                    }
+
+                    teams[teamName].matches += 1;
+                    teams[teamName].kills += kills;
+                    teams[teamName].points += kills + getPlacementPoints(placement);
+                    if (placement === 1) teams[teamName].wwcd += 1;
+                });
+
+                const sortedTeams = Object.entries(teams)
+                    .map(([name, stats]) => ({ name, ...stats }))
+                    .sort((a, b) => b.points - a.points || b.wwcd - a.wwcd || b.kills - a.kills);
+
+                const tbody = document.getElementById('leaderboard');
+                tbody.innerHTML = '';
+
+                sortedTeams.forEach((team, index) => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${team.name}</td>
+                            <td>${team.matches}</td>
+                            <td>${team.wwcd}</td>
+                            <td>${team.kills}</td>
+                            <td><strong>${team.points}</strong></td>
+                        </tr>
+                    `;
+                });
+            } catch (error) {
+                document.getElementById('leaderboard').innerHTML = '<tr><td colspan="6">Error loading scores. Check your CSV link.</td></tr>';
+            }
+        }
+
+        fetchScores();
+    </script>
+</body>
+</html>
