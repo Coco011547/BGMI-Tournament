@@ -3,40 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BGMI Tournament Hub</title>
+    <title>BGMI TOURNAMENT HUB</title>
     <style>
-        body { background-color: #121212; color: #fff; font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-        .nav { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        .nav a { color: #f39c12; text-decoration: none; font-weight: bold; padding: 8px 16px; border: 1px solid #f39c12; border-radius: 4px; }
-        .info-card { background: #1e1e1e; border: 2px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
-        .info-card h2 { margin: 0 0 10px 0; color: #f1c40f; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 1.1rem; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px 8px; border-bottom: 1px solid #333; text-align: center; }
-        th { background-color: #f39c12; color: #000; }
-        @media (max-width: 500px) { .info-grid { grid-template-columns: 1fr; } }
+        /* BGMI TACTICAL THEME */
+        :root {
+            --bgmi-yellow: #f1c40f;
+            --bgmi-dark: #1a1c1e;
+            --bgmi-card: #25282c;
+            --bgmi-border: #3f444a;
+            --bgmi-text: #e0e0e0;
+            --bgmi-accent: #ffcc00;
+        }
+
+        body { 
+            background-color: var(--bgmi-dark); 
+            color: var(--bgmi-text); 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; 
+            padding: 10px;
+            background-image: radial-gradient(circle at 50% 50%, #2c3136 0%, #1a1c1e 100%);
+        }
+
+        /* HEADER & NAV */
+        h1 { 
+            text-align: center; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            color: var(--bgmi-yellow);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin: 20px 0;
+            font-size: 1.8rem;
+        }
+
+        .nav { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .nav a { 
+            color: #fff; 
+            text-decoration: none; 
+            font-weight: bold; 
+            font-size: 0.8rem;
+            padding: 10px 15px; 
+            border: 1px solid var(--bgmi-border); 
+            background: var(--bgmi-card);
+            text-transform: uppercase;
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+        .nav a:hover { background: var(--bgmi-yellow); color: #000; }
+
+        /* LIVE MATCH CARD */
+        .info-card { 
+            background: var(--bgmi-card); 
+            border-left: 5px solid var(--bgmi-yellow); 
+            padding: 15px; 
+            border-radius: 4px; 
+            margin-bottom: 25px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .info-card h2 { 
+            margin: 0 0 15px 0; 
+            font-size: 1rem; 
+            text-transform: uppercase; 
+            color: var(--bgmi-yellow);
+            display: flex;
+            align-items: center;
+        }
+        .info-card h2::before { content: "⦿"; margin-right: 8px; color: #ff4444; animation: blink 1s infinite; }
+        
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .info-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+        }
+        .info-item { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 2px; border: 1px solid #333; }
+        .label { font-size: 0.7rem; color: #888; text-transform: uppercase; display: block; margin-bottom: 4px; }
+        .value { font-weight: bold; font-size: 1.1rem; color: #fff; }
+
+        /* LEADERBOARD TABLE */
+        .table-container { background: var(--bgmi-card); border-radius: 4px; overflow: hidden; border: 1px solid var(--bgmi-border); }
+        table { width: 100%; border-collapse: collapse; }
+        th { 
+            background-color: #31363b; 
+            color: #aaa; 
+            text-transform: uppercase; 
+            font-size: 0.75rem; 
+            padding: 15px 10px; 
+            letter-spacing: 1px;
+        }
+        td { padding: 15px 10px; text-align: center; border-bottom: 1px solid var(--bgmi-border); font-size: 0.9rem; }
+        
+        /* RANK STYLING */
+        tr:nth-child(1) td:nth-child(1) { background: #d4af37; color: #000; font-weight: bold; }
+        tr:nth-child(2) td:nth-child(1) { background: #c0c0c0; color: #000; font-weight: bold; }
+        tr:nth-child(3) td:nth-child(1) { background: #cd7f32; color: #000; font-weight: bold; }
+        
+        .team-name { text-align: left; font-weight: bold; color: var(--bgmi-accent); }
+        .points-total { color: var(--bgmi-yellow); font-weight: bold; font-size: 1.1rem; }
+
+        @media (max-width: 500px) {
+            .info-grid { grid-template-columns: 1fr; }
+            th, td { padding: 10px 5px; font-size: 0.8rem; }
+        }
     </style>
 </head>
 <body>
+
+    <h1>BGMI BATTLEGROUNDS</h1>
+
     <div class="nav">
-        <a href="register.html">Register Team</a>
-        <a href="admin.html">Admin Panel</a>
+        <a href="register.html">Squad Register</a>
+        <a href="admin.html">Admin Login</a>
     </div>
 
     <div class="info-card">
-        <h2>Next Match Info</h2>
+        <h2>Live Match Status</h2>
         <div class="info-grid" id="match-info">
-            <div>Loading room data...</div>
+            <div class="info-item">Loading Tactic Data...</div>
         </div>
     </div>
     
-    <h2 style="text-align: center; color: #f39c12;">Current Standings</h2>
-    <div style="overflow-x: auto;">
+    <div class="table-container">
         <table>
             <thead>
-                <tr><th>Rank</th><th>Team</th><th>Matches</th><th>WWCD</th><th>Kills</th><th>Points</th></tr>
+                <tr>
+                    <th style="width: 10%">#</th>
+                    <th style="text-align: left;">SQUAD NAME</th>
+                    <th>M</th>
+                    <th>WWCD</th>
+                    <th>FINISHES</th>
+                    <th>PTS</th>
+                </tr>
             </thead>
-            <tbody id="board"><tr><td colspan="6">Loading live data...</td></tr></tbody>
+            <tbody id="board">
+                <tr><td colspan="6">Fetching Battlefield Data...</td></tr>
+            </tbody>
         </table>
     </div>
 
@@ -56,17 +157,13 @@
                 if(infoData.length > 1) {
                     const [time, room, pass, map] = infoData[1];
                     document.getElementById('match-info').innerHTML = `
-                        <div><strong>Time:</strong> ${time}</div>
-                        <div><strong>Map:</strong> ${map}</div>
-                        <div><strong>Room ID:</strong> ${room}</div>
-                        <div><strong>Password:</strong> ${pass}</div>
+                        <div class="info-item"><span class="label">Schedule</span><span class="value">${time}</span></div>
+                        <div class="info-item"><span class="label">Map</span><span class="value">${map}</span></div>
+                        <div class="info-item"><span class="label">Room ID</span><span class="value" style="color:#f1c40f">${room}</span></div>
+                        <div class="info-item"><span class="label">Password</span><span class="value">${pass}</span></div>
                     `;
-                } else {
-                    document.getElementById('match-info').innerHTML = "<div>No match scheduled yet.</div>";
                 }
-            } catch(e) { 
-                document.getElementById('match-info').innerHTML = "<div>Error loading match info.</div>"; 
-            }
+            } catch(e) { console.log(e); }
 
             // Load Leaderboard
             try {
@@ -85,12 +182,18 @@
                 const sorted = Object.entries(teams).map(([name, s]) => ({name, ...s})).sort((a,b) => b.points - a.points || b.wwcd - a.wwcd || b.kills - a.kills);
                 let html = "";
                 sorted.forEach((t, i) => {
-                    let style = i === 0 ? "font-weight:bold; color:#f1c40f;" : "";
-                    html += `<tr style="${style}"><td>${i+1}</td><td>${t.name}</td><td>${t.matches}</td><td>${t.wwcd}</td><td>${t.kills}</td><td><strong>${t.points}</strong></td></tr>`;
+                    html += `<tr>
+                        <td>${i+1}</td>
+                        <td class="team-name">${t.name}</td>
+                        <td>${t.matches}</td>
+                        <td style="color:#2ecc71">${t.wwcd}</td>
+                        <td>${t.kills}</td>
+                        <td class="points-total">${t.points}</td>
+                    </tr>`;
                 });
-                document.getElementById('board').innerHTML = html || "<tr><td colspan='6'>No matches played yet.</td></tr>";
+                document.getElementById('board').innerHTML = html || "<tr><td colspan='6'>Waiting for Match Results...</td></tr>";
             } catch(e) {
-                document.getElementById('board').innerHTML = "<tr><td colspan='6'>Error loading database. Make sure you have submitted at least one score!</td></tr>";
+                document.getElementById('board').innerHTML = "<tr><td colspan='6'>Sync Error: Check Connection</td></tr>";
             }
         }
         load();
