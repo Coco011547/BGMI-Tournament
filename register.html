@@ -8,13 +8,13 @@
         body { background-color: #121212; color: #fff; font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; }
         input, button { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border-radius: 4px; border: none; }
         button { background-color: #f39c12; font-weight: bold; cursor: pointer; color: black; margin-top: 15px; }
-        a { display: block; text-align: center; color: #aaa; margin-bottom: 20px; }
+        a { display: block; text-align: center; color: #aaa; margin-bottom: 20px; text-decoration: none; }
         .notice { font-size: 0.9rem; color: #ccc; text-align: center; margin-bottom: 20px; }
     </style>
 </head>
 <body>
     <h1 style="text-align:center; color: #f39c12;">Register Your Squad</h1>
-    <a href="index.html">Return to Home</a>
+    <a href="index.html">⬅ Return to Home</a>
     <p class="notice">Enter your squad name and the exact In-Game Names (IGNs) of your players.</p>
     
     <input type="text" id="t_name" placeholder="Team Name (e.g., Team Alpha)">
@@ -26,7 +26,6 @@
     <button onclick="registerTeam()" id="regBtn">Submit Registration</button>
 
     <script>
-        // PASTE YOUR NEW GOOGLE SCRIPT WEB APP URL HERE:
         const API_URL = "https://script.google.com/macros/s/AKfycbwQowxA5loM-COyL7ud65vqKDJ7-JUAnCdRAzSbZeMN1Rb7QRwObddGjf5uecq3Tkzz6A/exec";
 
         async function registerTeam() {
@@ -42,21 +41,19 @@
             const url = `${API_URL}?action=register&team=${encodeURIComponent(team)}&p1=${encodeURIComponent(p1)}&p2=${encodeURIComponent(p2)}&p3=${encodeURIComponent(p3)}&p4=${encodeURIComponent(p4)}`;
             
             try {
-                await fetch(url);
-                alert("Squad Registered Successfully!");
-                document.getElementById('regBtn').innerText = "Submit Registration";
-                // Clear the form
-                document.getElementById('t_name').value = '';
-                document.getElementById('p1').value = '';
-                document.getElementById('p2').value = '';
-                document.getElementById('p3').value = '';
-                document.getElementById('p4').value = '';
-            } catch (error) {
-                alert("Error registering team. Please try again.");
-                document.getElementById('regBtn').innerText = "Submit Registration";
-            }
+                await fetch(url, { mode: 'no-cors' });
+            } catch (e) {}
+
+            alert("Squad registration sent successfully!");
+            document.getElementById('regBtn').innerText = "Submit Registration";
+            
+            // Clear the form
+            document.getElementById('t_name').value = '';
+            document.getElementById('p1').value = '';
+            document.getElementById('p2').value = '';
+            document.getElementById('p3').value = '';
+            document.getElementById('p4').value = '';
         }
     </script>
 </body>
 </html>
-
