@@ -7,22 +7,19 @@
     <style>
         :root { --bgmi-yellow: #f1c40f; --bgmi-dark: #1a1c1e; --bgmi-card: #25282c; --bgmi-text: #e0e0e0; }
         body { background-color: var(--bgmi-dark); color: var(--bgmi-text); font-family: sans-serif; margin: 0; padding: 10px; }
-        h1 { text-align: center; color: var(--bgmi-yellow); text-transform: uppercase; letter-spacing: 2px; }
+        h1 { text-align: center; color: var(--bgmi-yellow); text-transform: uppercase; letter-spacing: 1px; font-size: 1.4rem; margin: 15px 0; }
         
-        /* NAVIGATION */
         .nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
         .nav a { color: #fff; text-decoration: none; font-weight: bold; font-size: 0.7rem; padding: 12px; border: 1px solid #3f444a; background: var(--bgmi-card); text-transform: uppercase; text-align: center; border-radius: 4px; }
-        .nav a:hover { background: var(--bgmi-yellow); color: #000; }
 
-        /* COUNTDOWN & INFO */
-        .info-card { background: var(--bgmi-card); border-left: 5px solid var(--bgmi-yellow); padding: 15px; border-radius: 4px; margin-bottom: 20px; }
-        #countdown { font-size: 1.5rem; font-weight: bold; color: #ff4444; text-align: center; margin-top: 10px; font-family: monospace; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .info-item { background: rgba(0,0,0,0.2); padding: 8px; border: 1px solid #333; border-radius: 2px; }
-        .label { font-size: 0.6rem; color: #888; text-transform: uppercase; display: block; }
-        .value { font-weight: bold; color: #fff; font-size: 0.9rem; }
+        .info-card { background: var(--bgmi-card); border-left: 5px solid var(--bgmi-yellow); padding: 15px; border-radius: 4px; margin-bottom: 20px; text-align: center;}
+        #countdown { font-size: 1.8rem; font-weight: bold; color: #ff4444; margin-bottom: 10px; font-family: monospace; text-shadow: 0 0 10px rgba(255,0,0,0.3); }
+        
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .info-item { background: rgba(0,0,0,0.3); padding: 8px; border: 1px solid #333; border-radius: 2px; }
+        .label { font-size: 0.6rem; color: #888; text-transform: uppercase; display: block; margin-bottom: 2px; }
+        .value { font-weight: bold; color: #fff; font-size: 0.9rem; word-break: break-all; }
 
-        /* TABLE */
         .table-container { background: var(--bgmi-card); border-radius: 4px; overflow-x: auto; border: 1px solid #3f444a; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #31363b; color: #aaa; font-size: 0.7rem; padding: 12px; text-transform: uppercase; }
@@ -31,9 +28,7 @@
     </style>
 </head>
 <body>
-
-    <h1>BGMI BATTLEGROUNDS</h1>
-
+    <h1>BATTLEGROUNDS MOBILE INDIA</h1>
     <div class="nav">
         <a href="register.html">Register</a>
         <a href="slots.html">Slot List</a>
@@ -42,47 +37,70 @@
     </div>
 
     <div class="info-card">
-        <div id="countdown">Loading Timer...</div>
-        <div class="info-grid" id="match-info">
+        <div id="countdown">00:00:00</div>
+        <div class="info-grid">
             <div class="info-item"><span class="label">Map</span><span class="value" id="disp-map">-</span></div>
             <div class="info-item"><span class="label">Room ID</span><span class="value" id="disp-room" style="color:var(--bgmi-yellow)">-</span></div>
+            <div class="info-item" style="grid-column: span 2;"><span class="label">Password</span><span class="value" id="disp-pass">-</span></div>
         </div>
     </div>
-    
+
     <div class="table-container">
         <table>
-            <thead>
-                <tr><th>#</th><th style="text-align:left">SQUAD</th><th>M</th><th>FINISH</th><th>PTS</th></tr>
-            </thead>
-            <tbody id="board"><tr><td colspan="5">Fetching Results...</td></tr></tbody>
+            <thead><tr><th>#</th><th style="text-align:left">SQUAD</th><th>M</th><th>KILL</th><th>PTS</th></tr></thead>
+            <tbody id="board"><tr><td colspan="5">Loading Results...</td></tr></tbody>
         </table>
     </div>
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbwQowxA5loM-COyL7ud65vqKDJ7-JUAnCdRAzSbZeMN1Rb7QRwObddGjf5uecq3Tkzz6A/exec";
 
+        function parseTime(timeStr) {
+            const now = new Date();
+            const timeParts = timeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+            if (!timeParts) return null;
+            let hours = parseInt(timeParts[1]);
+            const minutes = parseInt(timeParts[2]);
+            const ampm = timeParts[3];
+            if (ampm) {
+                if (ampm.toUpperCase() === "PM" && hours < 12) hours += 12;
+                if (ampm.toUpperCase() === "AM" && hours === 12) hours = 0;
+            }
+            const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+            if (target < now && (now - target) > 3600000) target.setDate(target.getDate() + 1);
+            return target;
+        }
+
         async function load() {
             try {
-                // LOAD MATCH INFO & TIMER
+                // LOAD INFO
                 const infoRes = await fetch(API_URL + "?action=read_info");
                 const infoData = await infoRes.json();
                 if(infoData.length > 1) {
                     const [timeStr, room, pass, map] = infoData[1];
-                    document.getElementById('disp-map').innerText = map;
-                    document.getElementById('disp-room').innerText = room;
+                    document.getElementById('disp-map').innerText = map || "TBD";
+                    document.getElementById('disp-room').innerText = room || "TBD";
+                    document.getElementById('disp-pass').innerText = pass || "TBD";
 
-                    // Timer Logic (Assuming time format like "9:00 PM")
-                    setInterval(() => {
-                        const now = new Date();
-                        const target = new Date(now.toDateString() + ' ' + timeStr);
-                        let diff = target - now;
-                        if (diff < 0) { document.getElementById('countdown').innerText = "MATCH LIVE"; return; }
-                        
-                        const h = Math.floor(diff/3600000);
-                        const m = Math.floor((diff%3600000)/60000);
-                        const s = Math.floor((diff%60000)/1000);
-                        document.getElementById('countdown').innerText = `${h}h ${m}m ${s}s`;
-                    }, 1000);
+                    const targetDate = parseTime(timeStr);
+                    if (targetDate) {
+                        const timerInterval = setInterval(() => {
+                            const now = new Date();
+                            const diff = targetDate - now;
+                            if (diff <= 0) {
+                                document.getElementById('countdown').innerText = "LIVE NOW";
+                                document.getElementById('countdown').style.color = "#2ecc71";
+                                clearInterval(timerInterval);
+                                return;
+                            }
+                            const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+                            const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+                            const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+                            document.getElementById('countdown').innerText = `${h}:${m}:${s}`;
+                        }, 1000);
+                    } else {
+                        document.getElementById('countdown').innerText = "00:00:00";
+                    }
                 }
 
                 // LOAD SCORES
@@ -92,18 +110,14 @@
                 for (let i = 1; i < data.length; i++) {
                     const [id, m, name, rank, kills] = data[i];
                     if (!teams[name]) teams[name] = { m: 0, k: 0, p: 0 };
-                    teams[name].m += 1;
+                    teams[name].m++;
                     teams[name].k += parseInt(kills);
                     const pts = {1:10, 2:6, 3:5, 4:4, 5:3, 6:2, 7:1, 8:1}[parseInt(rank)] || 0;
                     teams[name].p += parseInt(kills) + pts;
                 }
                 const sorted = Object.entries(teams).map(([n, s]) => ({n, ...s})).sort((a,b) => b.p - a.p);
-                let html = "";
-                sorted.forEach((t, i) => {
-                    html += `<tr><td>${i+1}</td><td style="text-align:left;font-weight:bold">${t.n}</td><td>${t.m}</td><td>${t.k}</td><td class="points-total">${t.p}</td></tr>`;
-                });
-                document.getElementById('board').innerHTML = html || "<tr><td colspan='5'>No matches played.</td></tr>";
-            } catch(e) { console.log(e); }
+                document.getElementById('board').innerHTML = sorted.map((t, i) => `<tr><td>${i+1}</td><td style="text-align:left;font-weight:bold">${t.n}</td><td>${t.m}</td><td>${t.k}</td><td class="points-total">${t.p}</td></tr>`).join('') || "<tr><td colspan='5'>No matches yet.</td></tr>";
+            } catch(e) { console.error(e); }
         }
         load();
     </script>
